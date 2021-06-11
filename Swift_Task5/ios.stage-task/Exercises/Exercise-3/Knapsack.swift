@@ -17,34 +17,39 @@ public final class Knapsack {
     }
     
     func findMaxKilometres() -> Int {
-        let foodsEfficiencyTable = getEfficiencyTable(for: foods)
-        let drinksEfficiencyTable = getEfficiencyTable(for: drinks)
+        let foodsMemoizationTable = memoizationTable(for: foods)
+        let drinksMemoizationTable = memoizationTable(for: drinks)
         
-        var max = 0
-        for w in 1...maxWeight-1 {
-            let distanceToCover = min(foodsEfficiencyTable[foods.count][w], drinksEfficiencyTable[drinks.count][maxWeight - w])
-            if distanceToCover > max {
-                max = distanceToCover
+        var maximumDistanceToCover = 0
+        for weightOfFoodToTake in 1...maxWeight - 1 {
+            let distanceToCover = min(
+                foodsMemoizationTable[foods.count][weightOfFoodToTake],
+                drinksMemoizationTable[drinks.count][maxWeight - weightOfFoodToTake]
+            )
+            
+            if distanceToCover > maximumDistanceToCover {
+                maximumDistanceToCover = distanceToCover
             }
         }
         
-        return max
+        return maximumDistanceToCover
     }
     
-    private func getEfficiencyTable(for suppliesPack: [Supply]) -> [[Int]] {
-        let n = suppliesPack.count
-        var efficiencyTable = Array(repeating: Array(repeating: 0, count: maxWeight + 1), count: n + 1)
-        for i in 0..<n + 1 {
+    private func memoizationTable(for suppliesPack: [Supply]) -> [[Int]] {
+        var memoizationTable = Array(repeating: Array(repeating: 0, count: maxWeight + 1), count: suppliesPack.count + 1)
+        for i in 0..<suppliesPack.count + 1 {
             for j in 0..<maxWeight + 1 {
                 guard i != 0, j != 0 else { continue }
-                if suppliesPack[i-1].weight <= j {
-                    efficiencyTable[i][j] = max(suppliesPack[i - 1].value + efficiencyTable[i - 1][j - suppliesPack[i - 1].weight], efficiencyTable[i - 1][j])
+                if suppliesPack[i - 1].weight > j {
+                    ///Если предмет i при ограничении веса j не помещается в принципе - то и считать нечего, нужно просто брать значение, как если бы этого предмета и не было
+                    memoizationTable[i][j] = memoizationTable[i - 1][j]
                 } else {
-                    efficiencyTable[i][j] = efficiencyTable[i - 1][j]
+                    ///memoizationTable[i - 1][j - suppliesPack[i - 1].weight -- максимальная эфффективность, которую можно получить освободив место под suppliesPack[i - 1]
+                    memoizationTable[i][j] = max(suppliesPack[i - 1].value + memoizationTable[i - 1][j - suppliesPack[i - 1].weight], memoizationTable[i - 1][j])
                 }
             }
         }
         
-        return efficiencyTable
+        return memoizationTable
     }
 }

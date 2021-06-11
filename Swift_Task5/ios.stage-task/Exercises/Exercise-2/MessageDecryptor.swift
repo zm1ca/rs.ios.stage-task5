@@ -17,7 +17,8 @@ class MessageDecryptor: NSObject {
         
         while let match = regex.firstMatch(in: msg, options: [], range: NSRange(location: 0, length: msg.utf16.count)) {
             let numberOfRepetitions = Int(msg[match.range(at: 1)]) ?? 1
-            let stringToRepeat = msg[match.range(at: 2)]
+            let stringToRepeat      = msg[match.range(at: 2)]
+            
             msg.replaceSubrange(Range(match.range, in: msg)!, with: String(repeating: stringToRepeat, count: numberOfRepetitions))
         }
 
